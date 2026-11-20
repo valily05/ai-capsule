@@ -11,10 +11,11 @@ export async function apiRequest(endpoint, options = {}) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-
-    throw new Error(
+    const requestError = new Error(
       error.message || `Request failed: ${response.status}`
     );
+    requestError.status = response.status;
+    throw requestError;
   }
 
   if (response.status === 204) return null;

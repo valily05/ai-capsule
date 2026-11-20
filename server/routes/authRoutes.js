@@ -5,8 +5,19 @@ const {
   exchangeCodeForToken,
   getGitHubUser,
 } = require("../config/auth");
+const authenticateToken = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// The dashboard uses this route to restore the signed-in user's session.
+router.get("/me", authenticateToken, (req, res) => {
+  res.status(200).json({
+    user: {
+      id: req.user.userId,
+      username: req.user.username,
+    },
+  });
+});
 
 // Start GitHub OAuth
 router.get("/github", (req, res) => {
@@ -36,6 +47,10 @@ router.get("/github/callback", async (req, res) => {
   try {
     const { code, state } = req.query;
 
+    if (req.query.error) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_cancelled`);
+    }
+
     if (
       !code ||
       !state ||
@@ -49,18 +64,6 @@ router.get("/github/callback", async (req, res) => {
 
     const accessToken = await exchangeCodeForToken(code);
     const githubUser = await getGitHubUser(accessToken);
-
-const authenticateToken = require("../middleware/authMiddleware");
-
-// Get currently authenticated user
-router.get("/me", authenticateToken, (req, res) => {
-  res.status(200).json({
-    user: {
-      id: req.user.userId,
-      username: req.user.username,
-    },
-  });
-});
 
     const token = jwt.sign(
       {
@@ -84,7 +87,7 @@ router.get("/me", authenticateToken, (req, res) => {
     );
   } catch (error) {
     console.error("GitHub OAuth error:", error.message);
-    res.status(500).send("GitHub login failed.");
+    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
   }
 });
 

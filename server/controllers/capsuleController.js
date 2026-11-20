@@ -65,7 +65,7 @@ async function createCapsule(req, res) {
       ]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json({ capsule: result.rows[0] });
   } catch (error) {
     console.error("Create capsule error:", error);
     res.status(500).json({ message: "Failed to create capsule." });
@@ -133,7 +133,7 @@ async function updateCapsule(req, res) {
       return res.status(404).json({ message: "Capsule not found." });
     }
 
-    res.status(200).json(result.rows[0]);
+    res.status(200).json({ capsule: result.rows[0] });
   } catch (error) {
     console.error("Update capsule error:", error);
     res.status(500).json({ message: "Failed to update capsule." });
