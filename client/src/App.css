@@ -1439,7 +1439,11 @@
   .hero-actions { width: 100%; flex-direction: column; gap: 9px; margin-top: 25px; }
   .hero-actions .button { width: min(100%, 310px); }
   .workflow-visual { width: min(440px, 100%); height: 125px; margin-top: 41px; }
-  .workflow-track { top: 32px; right: 12%; left: 12%; }
+  .workflow-track {
+    top: 32px;
+    right: calc(3% + 25.5px);
+    left: calc(3% + 25.5px);
+  }
   .workflow-node { top: 7px; width: 51px; height: 51px; }
   .workflow-node-center { top: 0; left: calc(50% - 31px); width: 62px; height: 62px; }
   .workflow-label { top: 71px; font-size: 9px; }
@@ -1760,10 +1764,10 @@
 }
 
 @keyframes capsule-light-pass {
-  0% { transform: translateX(-125%); opacity: 0; }
-  6% { opacity: 1; }
-  19% { transform: translateX(125%); opacity: 0.8; }
-  30%, 100% { transform: translateX(125%); opacity: 0; }
+  0%, 38% { transform: translateX(-125%); opacity: 0; }
+  41% { opacity: 1; }
+  56% { transform: translateX(125%); opacity: 0.8; }
+  61%, 100% { transform: translateX(125%); opacity: 0; }
 }
 
 @keyframes capsule-pulse {
@@ -1777,9 +1781,8 @@
 }
 
 @keyframes workflow-travel {
-  0% { left: calc(50% - 74px); opacity: 0; }
-  4% { left: calc(50% - 74px); opacity: 1; }
-  21% { left: calc(50% - 40px); opacity: 1; }
+  0% { left: -74px; opacity: 0; }
+  4% { left: -74px; opacity: 1; }
   90% { left: calc(100% - 74px); opacity: 1; }
   100% { left: calc(100% - 74px); opacity: 0; }
 }
@@ -1792,9 +1795,9 @@
 
 @keyframes capsule-logo-pass {
   0% { transform: rotate(0) scale(1); }
-  4% { transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
-  13.35% { transform: rotate(210deg) scale(1.12); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
-  21%, 100% { transform: rotate(360deg) scale(1); }
+  39% { transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
+  48.35% { transform: rotate(210deg) scale(1.12); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
+  56%, 100% { transform: rotate(360deg) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
