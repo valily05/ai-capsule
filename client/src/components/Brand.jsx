@@ -10,7 +10,7 @@ export function BrandMark({ small = false, large = false, className = "" }) {
 
   return (
     <span className={classes} aria-hidden="true">
-      <img src="/favicon.svg" alt="" />
+      <img src="/capsule-logo.png" alt="" />
     </span>
   );
 }
