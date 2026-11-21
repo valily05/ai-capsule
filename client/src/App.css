@@ -1512,6 +1512,42 @@
   }
 }
 
+/* These branded motion cues are explicitly requested; keep them visible even
+   when the operating system asks the rest of the interface to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-page,
+  .login-page,
+  .dashboard-app {
+    animation: aurora-shift 25s ease-in-out infinite alternate !important;
+  }
+
+  .hero-glow {
+    animation: orb-drift 15s ease-in-out infinite alternate !important;
+  }
+
+  .closing-orb {
+    animation: orb-drift 13s ease-in-out infinite alternate !important;
+  }
+
+  .workflow-particle {
+    animation: workflow-travel 4.6s linear infinite !important;
+  }
+
+  .workflow-node-center {
+    animation: capsule-pulse 4.6s ease-in-out infinite !important;
+  }
+
+  .workflow-node-center::after {
+    animation: capsule-light-pass 4.6s ease-in-out infinite !important;
+  }
+
+  .site-nav > .brand:hover .brand-mark img {
+    animation: brand-logo-spin 780ms cubic-bezier(0.2, 0.72, 0.22, 1) both !important;
+  }
+
+  .button-primary:hover::after { transition-duration: 850ms !important; }
+}
+
 /* Brand mark, ambient gradients and light movement */
 .landing-page,
 .login-page {
