@@ -1583,6 +1583,12 @@
   box-shadow: 0 0 24px rgba(175, 123, 255, 0.14), inset 0 1px rgba(255, 255, 255, 0.14);
 }
 
+.site-nav > .brand:hover .brand-mark img {
+  animation: brand-logo-spin 780ms cubic-bezier(0.2, 0.72, 0.22, 1) both;
+}
+
+.site-nav > .brand .brand-mark img { transform-origin: center; }
+
 .hero-glow { animation: orb-drift 15s ease-in-out infinite alternate; }
 .hero-glow-two { animation-delay: -7s; }
 
@@ -1591,22 +1597,32 @@
 }
 
 .workflow-track::after {
-  position: absolute;
-  top: -5px;
-  left: 0;
-  width: 26%;
-  height: 11px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, transparent, rgba(210, 177, 255, 0.34), rgba(255, 255, 255, 0.95), rgba(255, 141, 219, 0.6), transparent);
-  content: "";
-  filter: blur(4px);
-  animation: workflow-beam 4.6s ease-in-out infinite;
+  content: none;
+  animation: none;
 }
 
 .workflow-particle {
-  width: 6px;
-  height: 6px;
-  box-shadow: 0 0 9px 3px #c89aff, 0 0 25px 8px rgba(240, 109, 207, 0.78), 0 0 38px 13px rgba(255, 151, 112, 0.18);
+  top: -1px;
+  left: 0;
+  width: 90px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, rgba(187, 126, 255, 0.17) 34%, rgba(255, 143, 219, 0.72) 72%, rgba(255, 255, 255, 0.98) 100%);
+  box-shadow: 0 0 13px 3px rgba(215, 151, 255, 0.67), 0 0 28px 7px rgba(240, 109, 207, 0.46);
+  animation: workflow-travel 4.6s linear infinite;
+}
+
+.workflow-particle::after {
+  position: absolute;
+  top: 50%;
+  right: -1px;
+  width: 5px;
+  height: 5px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 7px 3px #fff, 0 0 19px 7px rgba(255, 170, 234, 0.88), 0 0 29px 10px rgba(255, 155, 112, 0.32);
+  content: "";
 }
 
 .workflow-node-center {
@@ -1707,6 +1723,19 @@
 @keyframes orb-drift {
   from { transform: translate3d(-9px, -5px, 0) scale(0.96); }
   to { transform: translate3d(14px, 12px, 0) scale(1.07); }
+}
+
+@keyframes workflow-travel {
+  0% { left: -90px; opacity: 0; }
+  10% { opacity: 1; }
+  87% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@keyframes brand-logo-spin {
+  from { transform: rotate(0) scale(1); }
+  55% { transform: rotate(210deg) scale(1.12); }
+  to { transform: rotate(360deg) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

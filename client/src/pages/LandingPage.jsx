@@ -61,7 +61,7 @@ function LandingPage() {
         <nav className="site-nav page-width" aria-label="Main navigation">
           <Brand />
           <Link to="/login" className="nav-login">
-            Log in <ArrowRight size={16} />
+            Log in
           </Link>
         </nav>
       </header>
@@ -126,9 +126,6 @@ function LandingPage() {
               <span className="closing-icon"><BrandMark small /></span>
               <p className="section-kicker">Your next great idea starts here</p>
               <h2>Your best prompts deserve a home.</h2>
-              <Link to="/login" className="button button-primary">
-                Create your capsule <ArrowRight size={17} />
-              </Link>
             </div>
           </div>
         </section>
