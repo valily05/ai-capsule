@@ -36,8 +36,8 @@ function WorkflowVisual() {
   return (
     <div className="workflow-visual" aria-label="Save, organise and rediscover prompts">
       <div className="workflow-track" aria-hidden="true">
-        <span className="workflow-particle" />
       </div>
+      <span className="workflow-particle" aria-hidden="true" />
       <div className="workflow-node workflow-node-left" aria-hidden="true">
         <Layers size={21} />
       </div>

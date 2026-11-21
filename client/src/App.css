@@ -1541,6 +1541,10 @@
     animation: capsule-light-pass 4.6s ease-in-out infinite !important;
   }
 
+  .workflow-node-center .brand-mark-large img {
+    animation: capsule-logo-pass 4.6s linear infinite !important;
+  }
+
   .site-nav > .brand:hover .brand-mark img {
     animation: brand-logo-spin 780ms cubic-bezier(0.2, 0.72, 0.22, 1) both !important;
   }
@@ -1628,6 +1632,11 @@
 .hero-glow { animation: orb-drift 15s ease-in-out infinite alternate; }
 .hero-glow-two { animation-delay: -7s; }
 
+.workflow-visual {
+  --workflow-track-y: 37px;
+  --workflow-line-end: 89%;
+}
+
 .workflow-track {
   clip-path: inset(-18px 0 -18px 0);
   box-shadow: 0 0 13px rgba(174, 120, 255, 0.2);
@@ -1639,9 +1648,10 @@
 }
 
 .workflow-particle {
+  position: absolute;
   z-index: 2;
-  top: -1px;
-  left: 0;
+  top: calc(var(--workflow-track-y) - 1px);
+  left: calc(50% - 90px);
   width: 90px;
   height: 2px;
   border-radius: 999px;
@@ -1665,6 +1675,7 @@
 
 .workflow-node-center {
   isolation: isolate;
+  overflow: hidden;
   animation: capsule-pulse 4.6s ease-in-out infinite;
 }
 
@@ -1680,6 +1691,14 @@
 }
 
 .workflow-node-center .brand-mark-large { width: 41px; height: 41px; }
+.workflow-node-center .brand-mark-large img { animation: capsule-logo-pass 4.6s linear infinite; }
+
+@media (max-width: 560px) {
+  .workflow-visual {
+    --workflow-track-y: 32px;
+    --workflow-line-end: 88%;
+  }
+}
 
 .button-primary {
   position: relative;
@@ -1766,14 +1785,21 @@
 @keyframes workflow-travel {
   0% { left: calc(50% - 90px); opacity: 0; }
   4% { left: calc(50% - 90px); opacity: 1; }
-  90% { left: calc(100% - 90px); opacity: 1; }
-  100% { left: calc(100% - 90px); opacity: 0; }
+  90% { left: calc(var(--workflow-line-end) - 90px); opacity: 1; }
+  100% { left: calc(var(--workflow-line-end) - 90px); opacity: 0; }
 }
 
 @keyframes brand-logo-spin {
   from { transform: rotate(0) scale(1); }
   55% { transform: rotate(210deg) scale(1.12); }
   to { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes capsule-logo-pass {
+  0% { transform: rotate(0) scale(1); }
+  4% { transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
+  13.35% { transform: rotate(210deg) scale(1.12); animation-timing-function: cubic-bezier(0.2, 0.72, 0.22, 1); }
+  21%, 100% { transform: rotate(360deg) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
