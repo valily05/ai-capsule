@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Brand } from "../components/Brand";
+import { Brand, BrandMark } from "../components/Brand";
 
 function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ function LoginPage() {
         <div className="login-glow login-glow-a" aria-hidden="true" />
         <div className="login-glow login-glow-b" aria-hidden="true" />
         <section className="login-card" aria-labelledby="login-title">
-          <div className="login-brand-mark"><Sparkles size={25} /></div>
+          <BrandMark large className="login-brand-mark" />
           <p className="section-kicker">Your ideas, all in one place</p>
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-description">Your prompts are waiting for you.</p>
@@ -57,7 +57,7 @@ function LoginPage() {
       </main>
 
       <footer className="login-footer page-width">
-        <span>AI Capsule</span>
+        <Brand to="/" compact />
         <span>Secure sign-in powered by GitHub</span>
       </footer>
     </div>

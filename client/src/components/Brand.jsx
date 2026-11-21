@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 
-export function BrandMark({ small = false }) {
+export function BrandMark({ small = false, large = false, className = "" }) {
+  const classes = [
+    "brand-mark",
+    small && "brand-mark-small",
+    large && "brand-mark-large",
+    className,
+  ].filter(Boolean).join(" ");
+
   return (
-    <span className={`brand-mark${small ? " brand-mark-small" : ""}`} aria-hidden="true">
-      <Sparkles size={small ? 17 : 19} strokeWidth={2.2} />
+    <span className={classes} aria-hidden="true">
+      <img src="/favicon.svg" alt="" />
     </span>
   );
 }

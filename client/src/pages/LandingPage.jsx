@@ -4,10 +4,9 @@ import {
   Folder,
   Layers,
   Search,
-  Sparkles,
   WandSparkles,
 } from "lucide-react";
-import { Brand } from "../components/Brand";
+import { Brand, BrandMark } from "../components/Brand";
 
 const benefits = [
   {
@@ -43,7 +42,7 @@ function WorkflowVisual() {
         <Layers size={21} />
       </div>
       <div className="workflow-node workflow-node-center" aria-hidden="true">
-        <Sparkles size={25} />
+        <BrandMark large />
       </div>
       <div className="workflow-node workflow-node-right" aria-hidden="true">
         <Folder size={21} />
@@ -88,9 +87,6 @@ function LandingPage() {
               <Link to="/login" className="button button-primary">
                 Start building your capsule <ArrowRight size={17} />
               </Link>
-              <Link to="/login" className="button button-secondary">
-                Log in
-              </Link>
             </div>
           </div>
 
@@ -127,7 +123,7 @@ function LandingPage() {
             <div className="closing-orb closing-orb-blue" aria-hidden="true" />
             <div className="closing-orb closing-orb-pink" aria-hidden="true" />
             <div className="closing-content">
-              <span className="closing-icon"><Sparkles size={19} /></span>
+              <span className="closing-icon"><BrandMark small /></span>
               <p className="section-kicker">Your next great idea starts here</p>
               <h2>Your best prompts deserve a home.</h2>
               <Link to="/login" className="button button-primary">

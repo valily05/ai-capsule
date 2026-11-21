@@ -19,7 +19,7 @@ import {
   Save,
 } from "lucide-react";
 import { apiRequest } from "../services/api";
-import { Brand } from "../components/Brand";
+import { Brand, BrandMark } from "../components/Brand";
 
 const categoryOptions = ["Coding", "Writing", "Research", "Study", "Other"];
 
@@ -242,7 +242,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="dashboard-loading">
-        <span className="loading-mark"><Sparkles size={22} /></span>
+        <span className="loading-mark"><BrandMark large /></span>
         <span>Opening your capsule…</span>
       </div>
     );
@@ -251,7 +251,7 @@ function Dashboard() {
   if (!user) {
     return (
       <div className="dashboard-loading dashboard-loading-error" role="alert">
-        <span className="loading-mark"><Sparkles size={22} /></span>
+        <span className="loading-mark"><BrandMark large /></span>
         <span>{error || "Your session is unavailable."}</span>
         <button className="button button-secondary" onClick={() => navigate("/login")}>
           Return to sign in
