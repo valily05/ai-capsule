@@ -4,7 +4,6 @@ import {
   Folder,
   Layers,
   Search,
-  WandSparkles,
 } from "lucide-react";
 import { Brand, BrandMark } from "../components/Brand";
 
@@ -71,10 +70,6 @@ function LandingPage() {
           <div className="hero-glow hero-glow-one" aria-hidden="true" />
           <div className="hero-glow hero-glow-two" aria-hidden="true" />
           <div className="hero-copy-block">
-            <div className="hero-kicker">
-              <WandSparkles size={15} />
-              <span>Your personal prompt library</span>
-            </div>
             <h1>
               Never lose a<br className="desktop-break" /> great prompt
               <span className="gradient-text"> again.</span>
@@ -93,7 +88,6 @@ function LandingPage() {
           <WorkflowVisual />
 
           <div className="hero-caption">
-            <span className="caption-dot" />
             A quieter place for your best ideas
           </div>
         </section>
