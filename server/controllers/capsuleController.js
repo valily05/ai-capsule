@@ -1,6 +1,33 @@
 
 const { pool } = require("../database/db");
 
+function trimRequiredString(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function trimOptionalString(value) {
+  if (typeof value !== "string") return null;
+  return value.trim() || null;
+}
+
+function normalizeCapsuleInput(body) {
+  const input = body && typeof body === "object" && !Array.isArray(body) ? body : {};
+
+  return {
+    project_name: trimRequiredString(input.project_name),
+    prompt_title: trimRequiredString(input.prompt_title),
+    prompt_text: trimRequiredString(input.prompt_text),
+    prompt_version: trimOptionalString(input.prompt_version),
+    response_summary: trimOptionalString(input.response_summary),
+    category: trimOptionalString(input.category),
+    usefulness: trimOptionalString(input.usefulness),
+    reviewed: input.reviewed === true,
+    improved: input.improved === true,
+    screenshot_url: trimOptionalString(input.screenshot_url),
+    notes: trimOptionalString(input.notes),
+  };
+}
+
 // GET all capsules belonging to the logged-in user
 async function getCapsules(req, res) {
   try {
@@ -21,21 +48,9 @@ async function getCapsules(req, res) {
 // CREATE a new capsule
 async function createCapsule(req, res) {
   try {
-    const {
-      project_name,
-      prompt_title,
-      prompt_version,
-      prompt_text,
-      response_summary,
-      category,
-      usefulness,
-      reviewed,
-      improved,
-      screenshot_url,
-      notes,
-    } = req.body;
+    const capsule = normalizeCapsuleInput(req.body);
 
-    if (!project_name || !prompt_title || !prompt_text) {
+    if (!capsule.project_name || !capsule.prompt_title || !capsule.prompt_text) {
       return res.status(400).json({
         message: "Project name, prompt title and prompt text are required.",
       });
@@ -51,17 +66,17 @@ async function createCapsule(req, res) {
       RETURNING *`,
       [
         req.user.userId,
-        project_name,
-        prompt_title,
-        prompt_version || null,
-        prompt_text,
-        response_summary || null,
-        category || null,
-        usefulness || null,
-        reviewed === true,
-        improved === true,
-        screenshot_url || null,
-        notes || null,
+        capsule.project_name,
+        capsule.prompt_title,
+        capsule.prompt_version,
+        capsule.prompt_text,
+        capsule.response_summary,
+        capsule.category,
+        capsule.usefulness,
+        capsule.reviewed,
+        capsule.improved,
+        capsule.screenshot_url,
+        capsule.notes,
       ]
     );
 
@@ -76,22 +91,9 @@ async function createCapsule(req, res) {
 async function updateCapsule(req, res) {
   try {
     const { id } = req.params;
+    const capsule = normalizeCapsuleInput(req.body);
 
-    const {
-      project_name,
-      prompt_title,
-      prompt_version,
-      prompt_text,
-      response_summary,
-      category,
-      usefulness,
-      reviewed,
-      improved,
-      screenshot_url,
-      notes,
-    } = req.body;
-
-    if (!project_name || !prompt_title || !prompt_text) {
+    if (!capsule.project_name || !capsule.prompt_title || !capsule.prompt_text) {
       return res.status(400).json({
         message: "Project name, prompt title and prompt text are required.",
       });
@@ -113,17 +115,17 @@ async function updateCapsule(req, res) {
       WHERE id = $12 AND user_id = $13
       RETURNING *`,
       [
-        project_name,
-        prompt_title,
-        prompt_version || null,
-        prompt_text,
-        response_summary || null,
-        category || null,
-        usefulness || null,
-        reviewed === true,
-        improved === true,
-        screenshot_url || null,
-        notes || null,
+        capsule.project_name,
+        capsule.prompt_title,
+        capsule.prompt_version,
+        capsule.prompt_text,
+        capsule.response_summary,
+        capsule.category,
+        capsule.usefulness,
+        capsule.reviewed,
+        capsule.improved,
+        capsule.screenshot_url,
+        capsule.notes,
         id,
         req.user.userId,
       ]

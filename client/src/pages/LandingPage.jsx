@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { Brand, BrandMark } from "../components/Brand";
 
+const currentYear = new Date().getFullYear();
+
 const benefits = [
   {
     icon: Layers,
@@ -128,7 +130,7 @@ function LandingPage() {
       <footer className="site-footer page-width">
         <Brand compact />
         <span>Keep the good ideas close.</span>
-        <span>© {new Date().getFullYear()} AI Capsule</span>
+        <span>© {currentYear} AI Capsule</span>
       </footer>
     </div>
   );

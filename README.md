@@ -51,9 +51,11 @@ Set these environment variables on the **API project**. Do not commit or share t
 
 On the **frontend project**, set `VITE_API_BASE_URL` to the API origin. On the GitHub OAuth app, set the Homepage URL to the frontend origin and the callback URL to the API callback above. After changing Vercel environment variables, redeploy so the new values take effect.
 
-**Public frontend URL:** add the verified HTTPS URL here after deployment.
+**Public frontend URL:** [https://ai-capsule.vercel.app](https://ai-capsule.vercel.app)
 
-**Public API URL:** add the verified HTTPS URL here after deployment.
+**Public API URL:** [https://ai-capsule-api.vercel.app](https://ai-capsule-api.vercel.app)
+
+**Health check:** [https://ai-capsule-api.vercel.app/api/health](https://ai-capsule-api.vercel.app/api/health)
 
 ## Routes
 
@@ -80,16 +82,32 @@ In production, the session cookie is `HttpOnly`, `Secure`, and `SameSite=None` f
 
 The application uses SQLite during local development and creates the `capsules` table in `server/database/capsules.sqlite`. On Vercel, `DATABASE_URL` is required and selects Neon PostgreSQL; the schema is initialized by the Express API. Each record stores the GitHub user ID, project name, prompt title and text, version, category, response summary, usefulness, review/improvement flags, screenshot evidence URL, notes, and creation time. Screenshot evidence is stored as a URL; this app does not upload image files.
 
-## Required authentication checks
+## Authentication and persistence verification
 
-Run these against the deployed public URL before recording the demonstration. Replace `YOUR_PUBLIC_URL` with the actual HTTPS origin.
+### Checks performed
+
+- [x] `GET https://ai-capsule-api.vercel.app/api/health` returned `{"status":"ok"}` when checked on 2026-11-22.
+- [x] Unauthenticated `GET https://ai-capsule-api.vercel.app/api/capsules` returned `{"message":"Unauthorized: Please log in."}` when checked on 2026-11-22. The browser check confirmed the response body; it did not capture the raw HTTP status code.
+
+### Checks pending
+
+- [ ] Send a request with an invalid JWT and confirm the API denies it.
+- [ ] Complete GitHub OAuth sign-in and sign-out in the deployed app.
+- [ ] Create, read, update, and delete a prompt while signed in.
+- [ ] Refresh the dashboard after creating a prompt and confirm the record persists in Neon.
+- [ ] Sign in as a second GitHub account and confirm the first account's records are not visible or editable.
+- [ ] Verify the create and edit forms reject whitespace-only project names, titles, and prompt text.
+
+The checks above are manual deployment checks. Do not mark pending items complete until they have actually been run against the live app.
+
+For the authentication checks, use:
 
 ```sh
-curl -i https://YOUR_PUBLIC_URL/api/capsules
-curl -i -H "Cookie: token=fake-token-123" https://YOUR_PUBLIC_URL/api/capsules
+curl -i https://ai-capsule-api.vercel.app/api/capsules
+curl -i -H "Cookie: token=fake-token-123" https://ai-capsule-api.vercel.app/api/capsules
 ```
 
-Both requests should return `401 Unauthorized`. **Results:** not recorded in this source archive; add the actual HTTP status and date after running them against the deployed app.
+Both requests are expected to return `401 Unauthorized`.
 
 ## AI-assisted development note
 

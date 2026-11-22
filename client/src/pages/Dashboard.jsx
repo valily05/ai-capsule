@@ -52,6 +52,7 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [capsules, setCapsules] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -78,6 +79,7 @@ function Dashboard() {
           setError(err.message);
         }
       } finally {
+        setNow(Date.now());
         setLoading(false);
       }
     }
@@ -111,12 +113,12 @@ function Dashboard() {
   }, [capsules, filter, search, sort]);
 
   const recentCount = useMemo(() => {
-    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
     return capsules.filter((capsule) => {
       const createdAt = new Date(capsule.created_at).getTime();
       return Number.isFinite(createdAt) && createdAt >= weekAgo;
     }).length;
-  }, [capsules]);
+  }, [capsules, now]);
 
   function notify(message) {
     setNotice(message);
@@ -159,6 +161,23 @@ function Dashboard() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    const payload = {
+      ...form,
+      project_name: form.project_name.trim(),
+      prompt_title: form.prompt_title.trim(),
+      prompt_text: form.prompt_text.trim(),
+      prompt_version: form.prompt_version.trim(),
+      response_summary: form.response_summary.trim(),
+      screenshot_url: form.screenshot_url.trim(),
+      notes: form.notes.trim(),
+    };
+
+    if (!payload.project_name || !payload.prompt_title || !payload.prompt_text) {
+      setError("Project name, prompt title, and prompt text are required.");
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -166,7 +185,7 @@ function Dashboard() {
       const endpoint = editingId ? `/api/capsules/${editingId}` : "/api/capsules";
       const result = await apiRequest(endpoint, {
         method: editingId ? "PUT" : "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const savedCapsule = result.capsule;
 
@@ -180,6 +199,7 @@ function Dashboard() {
         notify("Prompt saved to your capsule.");
       }
 
+      setNow(Date.now());
       setShowForm(false);
       setEditingId(null);
       setForm({ ...emptyForm });
@@ -196,6 +216,7 @@ function Dashboard() {
     try {
       await apiRequest(`/api/capsules/${id}`, { method: "DELETE" });
       setCapsules((previous) => previous.filter((capsule) => capsule.id !== id));
+      setNow(Date.now());
       notify("Prompt deleted.");
     } catch (err) {
       setError(err.message);
