@@ -81,7 +81,7 @@ function LandingPage() {
               that make your AI workflow better.
             </p>
             <div className="hero-actions">
-              <Link to="/login" className="button button-primary button-no-glint">
+              <Link to="/login" className="button button-primary button-glint">
                 <span>Start building your capsule</span>
                 <ArrowRight size={17} />
               </Link>
