@@ -1,24 +1,97 @@
+const path = require("path");
 
-const { Pool } = require("pg");
+const databaseUrl = (process.env.DATABASE_URL || "").trim();
+let pool;
+let initializeDatabase;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing from server/.env");
-}
+if (databaseUrl) {
+  if (!/^postgres(?:ql)?:\/\//i.test(databaseUrl)) {
+    throw new Error(
+      "DATABASE_URL must be a full PostgreSQL connection URL, or be left blank to use local SQLite."
+    );
+  }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+  const { Pool } = require("pg");
+  pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
 
-async function initializeDatabase() {
-  const connection = await pool.connect();
+  initializeDatabase = async () => {
+    const connection = await pool.connect();
 
-  try {
-    await connection.query(`
+    try {
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS capsules (
+          id SERIAL PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          project_name TEXT NOT NULL,
+          prompt_title TEXT NOT NULL,
+          prompt_version TEXT,
+          prompt_text TEXT NOT NULL,
+          response_summary TEXT,
+          category TEXT,
+          usefulness TEXT,
+          reviewed BOOLEAN DEFAULT FALSE,
+          improved BOOLEAN DEFAULT FALSE,
+          screenshot_url TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      console.log("PostgreSQL database initialized successfully.");
+    } finally {
+      connection.release();
+    }
+  };
+} else {
+  const Database = require("better-sqlite3");
+  const databasePath = process.env.DATABASE_PATH
+    ? path.resolve(process.env.DATABASE_PATH)
+    : path.join(__dirname, "capsules.sqlite");
+  const database = new Database(databasePath);
+
+  database.pragma("journal_mode = WAL");
+
+  function normalizeRows(rows) {
+    return rows.map((row) => {
+      const normalized = { ...row };
+      if (Object.prototype.hasOwnProperty.call(row, "reviewed")) {
+        normalized.reviewed = Boolean(row.reviewed);
+      }
+      if (Object.prototype.hasOwnProperty.call(row, "improved")) {
+        normalized.improved = Boolean(row.improved);
+      }
+      return normalized;
+    });
+  }
+
+  pool = {
+    async query(sql, values = []) {
+      const sqliteSql = sql.replace(/\$(\d+)/g, "?$1");
+      const statement = database.prepare(sqliteSql);
+      const parameters = values.map((value) =>
+        typeof value === "boolean" ? Number(value) : value
+      );
+      const returnsRows = /^\s*SELECT\b/i.test(sql) || /\bRETURNING\b/i.test(sql);
+
+      if (returnsRows) {
+        const rows = normalizeRows(statement.all(...parameters));
+        return { rows, rowCount: rows.length };
+      }
+
+      const result = statement.run(...parameters);
+      return { rows: [], rowCount: result.changes };
+    },
+  };
+
+  initializeDatabase = async () => {
+    database.exec(`
       CREATE TABLE IF NOT EXISTS capsules (
-        id SERIAL PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
         project_name TEXT NOT NULL,
         prompt_title TEXT NOT NULL,
@@ -27,18 +100,16 @@ async function initializeDatabase() {
         response_summary TEXT,
         category TEXT,
         usefulness TEXT,
-        reviewed BOOLEAN DEFAULT FALSE,
-        improved BOOLEAN DEFAULT FALSE,
+        reviewed INTEGER DEFAULT 0,
+        improved INTEGER DEFAULT 0,
         screenshot_url TEXT,
         notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-    console.log("Neon PostgreSQL database initialized successfully.");
-  } finally {
-    connection.release();
-  }
+    console.log(`SQLite database initialized at ${databasePath}.`);
+  };
 }
 
 module.exports = { pool, initializeDatabase };

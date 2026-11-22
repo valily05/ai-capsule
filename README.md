@@ -6,12 +6,12 @@ AI Capsule is a private prompt library. Sign in with GitHub to save, search, org
 
 - React and Vite frontend
 - Node.js and Express API
-- PostgreSQL database
+- SQLite database by default; PostgreSQL is supported when configured
 - GitHub OAuth followed by an Express-issued JWT in an HttpOnly cookie
 
 ## Local setup
 
-Use a current Node.js LTS release supported by Vite 8 and a PostgreSQL database. The server creates the `capsules` table on startup.
+Use a current Node.js LTS release supported by Vite 8. Locally, the server uses SQLite by default and creates `server/database/capsules.sqlite` on startup. Set a full PostgreSQL `DATABASE_URL` to use PostgreSQL instead.
 
 1. Install dependencies:
 
@@ -20,7 +20,7 @@ Use a current Node.js LTS release supported by Vite 8 and a PostgreSQL database.
    npm install --prefix client
    ```
 
-2. Copy `server/.env.example` to `server/.env` and set `DATABASE_URL`, `JWT_SECRET`, and the GitHub OAuth values. For local development, keep `CLIENT_URL=http://localhost:5173` and set the OAuth callback URL to `http://localhost:5000/auth/github/callback`.
+2. Copy `server/.env.example` to `server/.env` and set `JWT_SECRET` and the GitHub OAuth values. Leave `DATABASE_URL` blank for local SQLite, or set it to a complete PostgreSQL connection URL. For local development, keep `CLIENT_URL=http://localhost:5174` and set the OAuth callback URL to `http://localhost:5000/auth/github/callback`.
 
 3. Start the API and frontend in separate terminals:
 
@@ -29,7 +29,7 @@ Use a current Node.js LTS release supported by Vite 8 and a PostgreSQL database.
    npm run dev --prefix client
    ```
 
-   Open `http://localhost:5173`. Vite proxies `/auth` and `/api` requests to the Express server on port 5000.
+   Open `http://localhost:5174`. Vite proxies `/auth` and `/api` requests to the Express server on port 5000.
 
 ## Production deployment
 
@@ -52,7 +52,8 @@ Configure these environment variables in the hosting platform. Do not put their 
 - `PORT`
 - `NODE_ENV=production`
 - `CLIENT_URL` (the public app origin)
-- `DATABASE_URL` (a persistent PostgreSQL database)
+- `DATABASE_URL` (optional; a full PostgreSQL URL selects PostgreSQL instead of SQLite)
+- `DATABASE_PATH` (optional; path to a SQLite database file, preferably on persistent storage in the cloud)
 - `JWT_SECRET` (a long, random value)
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
@@ -83,7 +84,7 @@ In production, the session cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`. O
 
 ## Database and storage
 
-The application connects through `DATABASE_URL` and creates the `capsules` table if it does not exist. Records include the GitHub user ID, project name, prompt title and text, version, category, response summary, usefulness, review/improvement flags, screenshot evidence URL, notes, and creation time. Prompt records persist according to the configured PostgreSQL provider. Screenshot evidence is stored as a URL; this app does not upload image files.
+The application uses SQLite by default and creates the `capsules` table in `server/database/capsules.sqlite`. If `DATABASE_URL` contains a full PostgreSQL connection URL, the server uses PostgreSQL instead. SQLite data is durable on a normal local disk, but may be ephemeral on cloud hosts unless a persistent disk is configured. Records include the GitHub user ID, project name, prompt title and text, version, category, response summary, usefulness, review/improvement flags, screenshot evidence URL, notes, and creation time. Screenshot evidence is stored as a URL; this app does not upload image files.
 
 ## Required authentication checks
 
@@ -98,6 +99,6 @@ Both requests should return `401 Unauthorized`. **Results:** not recorded in thi
 
 ## AI-assisted development note
 
-OpenAI Codex assisted with the React interface and code review. During review, the dashboard was found to expect a `{ capsule: ... }` response while the create/update API returned a bare row; the API response shape was made consistent with the dashboard. The `/auth/me` endpoint was also found inside the OAuth callback and moved to router setup so it is registered once. The implementation keeps Express serving the production React build and uses PostgreSQL, preserving a same-origin session-cookie flow without adding dependencies.
+OpenAI Codex assisted with the React interface and code review. During review, the dashboard was found to expect a `{ capsule: ... }` response while the create/update API returned a bare row; the API response shape was made consistent with the dashboard. The `/auth/me` endpoint was also found inside the OAuth callback and moved to router setup so it is registered once. The implementation keeps Express serving the production React build and supports SQLite locally or PostgreSQL when configured, preserving a same-origin session-cookie flow.
 
 The project owner should review the changes, run the authentication and CRUD checks, and be prepared to explain the implementation and deployment choices in the recorded demonstration.

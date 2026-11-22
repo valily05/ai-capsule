@@ -21,6 +21,24 @@ router.get("/me", authenticateToken, (req, res) => {
 
 // Start GitHub OAuth
 router.get("/github", (req, res) => {
+  const requiredConfig = [
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "GITHUB_CALLBACK_URL",
+    "CLIENT_URL",
+    "JWT_SECRET",
+  ];
+  const missingConfig = requiredConfig.filter(
+    (name) => !process.env[name]?.trim()
+  );
+
+  if (missingConfig.length) {
+    return res
+      .status(503)
+      .type("text/plain")
+      .send(`GitHub sign-in is not configured. Set: ${missingConfig.join(", ")}`);
+  }
+
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
     redirect_uri: process.env.GITHUB_CALLBACK_URL,
@@ -34,6 +52,7 @@ router.get("/github", (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
+    path: "/auth",
     maxAge: 5 * 60 * 1000,
   });
 
@@ -60,7 +79,12 @@ router.get("/github/callback", async (req, res) => {
       return res.status(400).send("Invalid OAuth state.");
     }
 
-    res.clearCookie("oauth_state");
+    res.clearCookie("oauth_state", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/auth",
+    });
 
     const accessToken = await exchangeCodeForToken(code);
     const githubUser = await getGitHubUser(accessToken);
