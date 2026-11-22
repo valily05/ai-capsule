@@ -41,7 +41,7 @@ function LoginPage() {
           )}
 
           <button
-            className="button button-primary button-glint github-button"
+            className="button button-primary button-no-glint github-button"
             onClick={handleGitHubLogin}
             disabled={loading}
           >

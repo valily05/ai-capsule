@@ -6,6 +6,7 @@ const isVercel =
 const isProduction = isVercel || process.env.NODE_ENV === "production";
 let pool;
 let initializeDatabase;
+let databaseReadyPromise;
 
 if (isProduction && !databaseUrl) {
   throw new Error(
@@ -25,10 +26,17 @@ if (databaseUrl) {
     connectionString: databaseUrl,
     max: 5,
     connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 10000,
+    idleTimeoutMillis: 5000,
+    query_timeout: 10000,
+    statement_timeout: 10000,
+    allowExitOnIdle: true,
     ssl: {
       rejectUnauthorized: false,
     },
+  });
+
+  pool.on("error", (error) => {
+    console.error("PostgreSQL idle connection error:", error.message);
   });
 
   if (isVercel) {
@@ -37,32 +45,26 @@ if (databaseUrl) {
   }
 
   initializeDatabase = async () => {
-    const connection = await pool.connect();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS capsules (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        project_name TEXT NOT NULL,
+        prompt_title TEXT NOT NULL,
+        prompt_version TEXT,
+        prompt_text TEXT NOT NULL,
+        response_summary TEXT,
+        category TEXT,
+        usefulness TEXT,
+        reviewed BOOLEAN DEFAULT FALSE,
+        improved BOOLEAN DEFAULT FALSE,
+        screenshot_url TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
-    try {
-      await connection.query(`
-        CREATE TABLE IF NOT EXISTS capsules (
-          id SERIAL PRIMARY KEY,
-          user_id TEXT NOT NULL,
-          project_name TEXT NOT NULL,
-          prompt_title TEXT NOT NULL,
-          prompt_version TEXT,
-          prompt_text TEXT NOT NULL,
-          response_summary TEXT,
-          category TEXT,
-          usefulness TEXT,
-          reviewed BOOLEAN DEFAULT FALSE,
-          improved BOOLEAN DEFAULT FALSE,
-          screenshot_url TEXT,
-          notes TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-
-      console.log("PostgreSQL database initialized successfully.");
-    } finally {
-      connection.release();
-    }
+    console.log("PostgreSQL database initialized successfully.");
   };
 } else {
   const Database = require("better-sqlite3");
@@ -129,4 +131,17 @@ if (databaseUrl) {
   };
 }
 
-module.exports = { pool, initializeDatabase };
+function ensureDatabaseReady() {
+  if (!databaseReadyPromise) {
+    databaseReadyPromise = Promise.resolve()
+      .then(initializeDatabase)
+      .catch((error) => {
+        databaseReadyPromise = null;
+        throw error;
+      });
+  }
+
+  return databaseReadyPromise;
+}
+
+module.exports = { pool, ensureDatabaseReady };

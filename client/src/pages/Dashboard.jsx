@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownUp,
@@ -60,16 +60,31 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [error, setError] = useState("");
+  const [logoutError, setLogoutError] = useState("");
   const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [sort, setSort] = useState("newest");
   const [activeSection, setActiveSection] = useState("overview");
   const [showForm, setShowForm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const logoutCancelRef = useRef(null);
+
+  useEffect(() => {
+    if (!showLogoutConfirm) return undefined;
+
+    logoutCancelRef.current?.focus();
+    function handleDialogKeyDown(event) {
+      if (event.key === "Escape" && !loggingOut) setShowLogoutConfirm(false);
+    }
+    window.addEventListener("keydown", handleDialogKeyDown);
+    return () => window.removeEventListener("keydown", handleDialogKeyDown);
+  }, [showLogoutConfirm, loggingOut]);
 
   useEffect(() => {
     async function initialize() {
@@ -94,8 +109,12 @@ function Dashboard() {
   }, [navigate]);
 
   const categories = useMemo(() => {
-    const found = capsules.map((capsule) => capsule.category).filter(Boolean);
-    return [...new Set([...categoryOptions, ...found])].sort((a, b) => a.localeCompare(b));
+    const found = [...new Set(capsules.map((capsule) => capsule.category).filter(Boolean))];
+    const customCategories = found
+      .filter((category) => !categoryOptions.includes(category))
+      .sort((a, b) => a.localeCompare(b));
+
+    return [...categoryOptions.slice(0, -1), ...customCategories, categoryOptions.at(-1)];
   }, [capsules]);
 
   const filteredCapsules = useMemo(() => {
@@ -240,12 +259,16 @@ function Dashboard() {
     }
   }
 
-  async function handleLogout() {
+  async function confirmLogout() {
+    setLoggingOut(true);
+    setLogoutError("");
     try {
       await apiRequest("/auth/logout", { method: "POST" });
       navigate("/login", { replace: true });
     } catch (err) {
-      setError(err.message);
+      setLogoutError(err.message);
+    } finally {
+      setLoggingOut(false);
     }
   }
 
@@ -324,7 +347,12 @@ function Dashboard() {
               <strong>{user.username}</strong>
               <small>GitHub account</small>
             </span>
-            <button className="logout-button" onClick={handleLogout} aria-label="Sign out" title="Sign out">
+            <button
+              className="logout-button"
+              onClick={() => { setLogoutError(""); setShowLogoutConfirm(true); }}
+              aria-label="Sign out"
+              title="Sign out"
+            >
               <LogOut size={17} />
             </button>
           </div>
@@ -339,8 +367,14 @@ function Dashboard() {
               <h1>Welcome back, <span>{user.username}</span><span className="heading-period">.</span></h1>
               <p className="dashboard-subtitle">A little inspiration, neatly kept.</p>
             </div>
-            <button className="button button-primary add-prompt-button" onClick={openCreate}>
-              <Plus size={18} /> Add a prompt
+            <button className="button button-primary add-prompt-button button-glint" onClick={openCreate}>
+              <span className="button-label-row">
+                <Plus size={18} />
+                <span className="glint-label">
+                  <span>Add a prompt</span>
+                  <span className="glint-label-shine" aria-hidden="true">Add a prompt</span>
+                </span>
+              </span>
             </button>
           </header>
 
@@ -422,7 +456,15 @@ function Dashboard() {
                   ? "Start saving your favourite prompts and build your personal AI library."
                   : "Try a different search or clear the filters to see your library."}</p>
                 {capsules.length === 0 ? (
-                  <button className="button button-primary add-prompt-button" onClick={openCreate}><Plus size={17} /> Create your first prompt</button>
+                  <button className="button button-primary add-prompt-button button-glint" onClick={openCreate}>
+                    <span className="button-label-row">
+                      <Plus size={17} />
+                      <span className="glint-label">
+                        <span>Create your first prompt</span>
+                        <span className="glint-label-shine" aria-hidden="true">Create your first prompt</span>
+                      </span>
+                    </span>
+                  </button>
                 ) : (
                   <button className="button button-secondary" onClick={() => { setSearch(""); setFilter("All"); }}>Clear filters</button>
                 )}
@@ -524,7 +566,7 @@ function Dashboard() {
                 <label>
                   Category
                   <select name="category" value={form.category} onChange={updateField}>
-                    {[...new Set([...categoryOptions, ...categories])].map((category) => <option key={category}>{category}</option>)}
+                    {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                   </select>
                 </label>
                 <label>
@@ -563,6 +605,38 @@ function Dashboard() {
                 </button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {showLogoutConfirm && (
+        <div className="modal-backdrop">
+          <section
+            className="prompt-modal logout-confirmation"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-confirm-title"
+            aria-describedby="logout-confirm-description"
+          >
+            <div className="modal-header">
+              <div>
+                <p className="dashboard-eyebrow">ACCOUNT</p>
+                <h2 id="logout-confirm-title">Log out of your account?</h2>
+                <p id="logout-confirm-description">You’ll need to sign in again to open your capsule.</p>
+              </div>
+              <button type="button" className="modal-close" onClick={() => setShowLogoutConfirm(false)} aria-label="Cancel sign out" disabled={loggingOut}>
+                <X size={19} />
+              </button>
+            </div>
+            {logoutError && <p className="dashboard-error" role="alert">{logoutError}</p>}
+            <div className="logout-confirm-actions">
+              <button ref={logoutCancelRef} type="button" className="button button-secondary" onClick={() => setShowLogoutConfirm(false)} disabled={loggingOut}>
+                Cancel
+              </button>
+              <button type="button" className="button button-primary button-glint" onClick={confirmLogout} disabled={loggingOut}>
+                {loggingOut ? "Logging out…" : "Log out"}
+              </button>
+            </div>
           </section>
         </div>
       )}

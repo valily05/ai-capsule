@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const capsuleRoutes = require("./routes/capsuleRoutes");
-const { initializeDatabase } = require("./database/db");
+const { ensureDatabaseReady } = require("./database/db");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const isVercel =
@@ -20,8 +20,6 @@ if (isProduction && !clientUrl) {
   throw new Error("CLIENT_URL is required in production. Set it to the public frontend origin.");
 }
 
-const databaseReady = initializeDatabase();
-
 app.set("trust proxy", 1);
 
 app.use(
@@ -32,12 +30,6 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
-
-// Vercel imports this Express app as a serverless function. Wait for the
-// Neon/SQLite schema initialization before serving any route.
-app.use((req, res, next) => {
-  databaseReady.then(() => next()).catch(next);
-});
 
 // API routes
 app.use("/auth", authRoutes);
@@ -68,7 +60,7 @@ app.use((error, req, res, next) => {
 });
 
 if (!isVercel) {
-  databaseReady
+  ensureDatabaseReady()
     .then(() => {
       app.listen(PORT, () => {
         console.log(`AI Capsule backend running on port ${PORT}`);
