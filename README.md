@@ -5,13 +5,13 @@ AI Capsule is a private prompt library. Sign in with GitHub to save, search, org
 ## Stack
 
 - React and Vite frontend
-- Node.js and Express API
-- SQLite database by default; PostgreSQL is supported when configured
+- Node.js and Express API deployed on Vercel
+- Neon PostgreSQL for deployed, persistent storage; SQLite for local development
 - GitHub OAuth followed by an Express-issued JWT in an HttpOnly cookie
 
 ## Local setup
 
-Use a current Node.js LTS release supported by Vite 8. Locally, the server uses SQLite by default and creates `server/database/capsules.sqlite` on startup. Set a full PostgreSQL `DATABASE_URL` to use PostgreSQL instead.
+Use a current Node.js LTS release supported by Vite 8. Locally, the server uses SQLite by default and creates `server/database/capsules.sqlite` on startup. A local `DATABASE_URL` may be left blank for SQLite or set to a Neon/PostgreSQL connection string.
 
 1. Install dependencies:
 
@@ -20,7 +20,7 @@ Use a current Node.js LTS release supported by Vite 8. Locally, the server uses 
    npm install --prefix client
    ```
 
-2. Copy `server/.env.example` to `server/.env` and set `JWT_SECRET` and the GitHub OAuth values. Leave `DATABASE_URL` blank for local SQLite, or set it to a complete PostgreSQL connection URL. For local development, keep `CLIENT_URL=http://localhost:5174` and set the OAuth callback URL to `http://localhost:5000/auth/github/callback`.
+2. Copy `server/.env.example` to `server/.env` and set `JWT_SECRET` and the GitHub OAuth values. For local development, leave `DATABASE_URL` blank to use SQLite, keep `CLIENT_URL=http://localhost:5174`, and set the OAuth callback URL to `http://localhost:5000/auth/github/callback`.
 
 3. Start the API and frontend in separate terminals:
 
@@ -31,35 +31,29 @@ Use a current Node.js LTS release supported by Vite 8. Locally, the server uses 
 
    Open `http://localhost:5174`. Vite proxies `/auth` and `/api` requests to the Express server on port 5000.
 
-## Production deployment
+## Vercel + Neon deployment
 
-The Express app serves the built React site when `NODE_ENV=production`. A single public origin keeps the OAuth redirect and cookie setup straightforward.
+The frontend and Express API are separate Vercel projects from this repository, and Neon PostgreSQL stores deployed prompt records. Render was initially considered, but its credit-card verification requirement prevented its use; Vercel and Neon were chosen as the alternative cloud deployment.
 
-Example build command:
+Create two Vercel projects connected to this repository:
 
-```sh
-npm install --prefix server && npm install --prefix client && npm run build --prefix client
-```
+1. **Frontend:** set the Root Directory to `client`. Vercel builds the Vite app from `npm run build` and serves the `dist` directory. Add `VITE_API_BASE_URL` with the API project's public origin, with no trailing slash. The included `client/vercel.json` supports direct navigation to React routes such as `/dashboard`.
+2. **API:** set the Root Directory to `server`. Vercel detects the Express app in `index.js` and runs it as a Function. Its Express routes handle `/api/*` and `/auth/*`.
 
-Example start command:
+Set these environment variables on the **API project**. Do not commit or share their values:
 
-```sh
-npm start --prefix server
-```
+- `DATABASE_URL`: Neon PostgreSQL's pooled connection URL. This is required on Vercel; an empty value selects SQLite only for local development.
+- `CLIENT_URL`: the exact public frontend origin, such as `https://your-frontend.vercel.app`.
+- `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`: the GitHub OAuth app credentials.
+- `GITHUB_CALLBACK_URL`: the API origin plus `/auth/github/callback`.
+- `JWT_SECRET`: a long, random signing key.
+- `COOKIE_SAME_SITE=none`: the frontend and API are separate origins; production cookies are Secure and HttpOnly.
 
-Configure these environment variables in the hosting platform. Do not put their values in this README or commit them:
+On the **frontend project**, set `VITE_API_BASE_URL` to the API origin. On the GitHub OAuth app, set the Homepage URL to the frontend origin and the callback URL to the API callback above. After changing Vercel environment variables, redeploy so the new values take effect.
 
-- `PORT`
-- `NODE_ENV=production`
-- `CLIENT_URL` (the public app origin)
-- `DATABASE_URL` (optional; a full PostgreSQL URL selects PostgreSQL instead of SQLite)
-- `DATABASE_PATH` (optional; path to a SQLite database file, preferably on persistent storage in the cloud)
-- `JWT_SECRET` (a long, random value)
-- `GITHUB_CLIENT_ID`
-- `GITHUB_CLIENT_SECRET`
-- `GITHUB_CALLBACK_URL` (the public app origin plus `/auth/github/callback`)
+**Public frontend URL:** add the verified HTTPS URL here after deployment.
 
-**Public deployment URL:** add the verified URL here after deployment.
+**Public API URL:** add the verified HTTPS URL here after deployment.
 
 ## Routes
 
@@ -78,13 +72,13 @@ Configure these environment variables in the hosting platform. Do not put their 
 | PUT | `/api/capsules/:id` | JWT required | Update one of the signed-in user’s prompts |
 | DELETE | `/api/capsules/:id` | JWT required | Delete one of the signed-in user’s prompts |
 
-The browser sends same-origin requests with credentials included. The API verifies the JWT from the `token` cookie before returning prompt data. The authenticated user ID comes from the verified token; the browser cannot choose a record owner. Read, update, and delete queries are scoped to that user.
+The frontend sends credentialed requests to the Express API. Vercel's API project allows the exact frontend origin through CORS. The API verifies the JWT from the `token` cookie before returning prompt data. The authenticated user ID comes from the verified token; the browser cannot choose a record owner. Read, update, and delete queries are scoped to that user.
 
-In production, the session cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`. OAuth state is checked on the callback.
+In production, the session cookie is `HttpOnly`, `Secure`, and `SameSite=None` for the separate Vercel frontend/API origins. OAuth state is checked on the callback.
 
 ## Database and storage
 
-The application uses SQLite by default and creates the `capsules` table in `server/database/capsules.sqlite`. If `DATABASE_URL` contains a full PostgreSQL connection URL, the server uses PostgreSQL instead. SQLite data is durable on a normal local disk, but may be ephemeral on cloud hosts unless a persistent disk is configured. Records include the GitHub user ID, project name, prompt title and text, version, category, response summary, usefulness, review/improvement flags, screenshot evidence URL, notes, and creation time. Screenshot evidence is stored as a URL; this app does not upload image files.
+The application uses SQLite during local development and creates the `capsules` table in `server/database/capsules.sqlite`. On Vercel, `DATABASE_URL` is required and selects Neon PostgreSQL; the schema is initialized by the Express API. Each record stores the GitHub user ID, project name, prompt title and text, version, category, response summary, usefulness, review/improvement flags, screenshot evidence URL, notes, and creation time. Screenshot evidence is stored as a URL; this app does not upload image files.
 
 ## Required authentication checks
 
@@ -99,6 +93,6 @@ Both requests should return `401 Unauthorized`. **Results:** not recorded in thi
 
 ## AI-assisted development note
 
-OpenAI Codex assisted with the React interface and code review. During review, the dashboard was found to expect a `{ capsule: ... }` response while the create/update API returned a bare row; the API response shape was made consistent with the dashboard. The `/auth/me` endpoint was also found inside the OAuth callback and moved to router setup so it is registered once. The implementation keeps Express serving the production React build and supports SQLite locally or PostgreSQL when configured, preserving a same-origin session-cookie flow.
+OpenAI Codex assisted with the React interface and code review. During review, the dashboard was found to expect a `{ capsule: ... }` response while the create/update API returned a bare row; the API response shape was made consistent with the dashboard. The `/auth/me` endpoint was also found inside the OAuth callback and moved to router setup so it is registered once. A deployment decision was to use Vercel for the React frontend and Express API with Neon PostgreSQL for persistent cloud storage, while keeping SQLite as the local development default.
 
-The project owner should review the changes, run the authentication and CRUD checks, and be prepared to explain the implementation and deployment choices in the recorded demonstration.
+One limitation is that the frontend and API are separate Vercel projects, so their public origins and credentialed-cookie settings must remain aligned. The project owner should run the authentication and CRUD checks against the deployed URLs and be prepared to explain the implementation and deployment choices in the recorded demonstration.

@@ -1290,6 +1290,7 @@
 }
 
 .required-mark { color: #ff9bbf; }
+.field-label { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
 
 .prompt-form input:not([type="checkbox"]),
 .prompt-form textarea,
@@ -1536,6 +1537,9 @@
   }
 
   .button-primary:hover::after { transition-duration: 850ms !important; }
+  .add-prompt-button:hover::after {
+    animation: add-prompt-glint 780ms cubic-bezier(0.22, 0.72, 0.2, 1) both !important;
+  }
 }
 
 /* Brand mark, ambient gradients and light movement */
@@ -1700,6 +1704,42 @@
 }
 
 .button-primary:hover::after { transform: rotate(22deg) translateX(760%); transition: transform 850ms ease; }
+
+.add-prompt-button::after {
+  top: 0;
+  bottom: 0;
+  left: -21%;
+  width: 12%;
+  opacity: 0;
+  transform: skewX(-16deg) translateX(-250%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08) 28%,
+    rgba(255, 255, 255, 0.46) 50%,
+    rgba(255, 255, 255, 0.08) 72%,
+    transparent
+  );
+  transition: none;
+}
+
+.add-prompt-button:hover::after {
+  transition: none;
+  animation: add-prompt-glint 780ms cubic-bezier(0.22, 0.72, 0.2, 1) both;
+}
+
+@keyframes add-prompt-glint {
+  0% {
+    opacity: 0;
+    transform: skewX(-16deg) translateX(-250%);
+  }
+  18% { opacity: 0.9; }
+  76% { opacity: 0.72; }
+  100% {
+    opacity: 0;
+    transform: skewX(-16deg) translateX(1000%);
+  }
+}
 
 .benefit-card,
 .capsule-card,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Brand, BrandMark } from "../components/Brand";
+import { apiUrl } from "../services/api";
 
 function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -10,7 +11,7 @@ function LoginPage() {
 
   const handleGitHubLogin = () => {
     setLoading(true);
-    window.location.assign("/auth/github");
+    window.location.assign(apiUrl("/auth/github"));
   };
 
   return (

@@ -11,7 +11,6 @@ import {
   LogOut,
   Plus,
   Search,
-  Sparkles,
   Tags,
   Trash2,
   X,
@@ -230,15 +229,6 @@ function Dashboard() {
     if (section === "categories") document.getElementById("category-filter")?.focus();
   }
 
-  useEffect(() => {
-    if (!showForm) return undefined;
-    const onKeyDown = (event) => {
-      if (event.key === "Escape" && !saving) setShowForm(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showForm, saving]);
-
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -296,7 +286,7 @@ function Dashboard() {
 
         <div className="sidebar-bottom">
           <div className="sidebar-tip">
-            <span className="tip-icon"><Sparkles size={15} /></span>
+            <span className="tip-icon"><BookOpen size={15} /></span>
             <p>Your next great prompt is only a search away.</p>
           </div>
           <div className="sidebar-profile">
@@ -398,14 +388,14 @@ function Dashboard() {
 
             {filteredCapsules.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon"><Sparkles size={25} /></div>
+                <div className="empty-icon"><BookOpen size={25} /></div>
                 <p className="section-kicker">A fresh page</p>
-                <h3>{capsules.length === 0 ? "Your capsule is waiting." : "No prompts found."}</h3>
+                {capsules.length > 0 && <h3>No prompts found.</h3>}
                 <p>{capsules.length === 0
                   ? "Start saving your favourite prompts and build your personal AI library."
                   : "Try a different search or clear the filters to see your library."}</p>
                 {capsules.length === 0 ? (
-                  <button className="button button-primary" onClick={openCreate}><Plus size={17} /> Create your first prompt</button>
+                  <button className="button button-primary add-prompt-button" onClick={openCreate}><Plus size={17} /> Create your first prompt</button>
                 ) : (
                   <button className="button button-secondary" onClick={() => { setSearch(""); setFilter("All"); }}>Clear filters</button>
                 )}
@@ -430,7 +420,7 @@ function Dashboard() {
                       {capsule.prompt_version && <span>{capsule.prompt_version}</span>}
                       {capsule.usefulness && <span>{capsule.usefulness}</span>}
                       {capsule.reviewed && <span className="meta-positive"><Check size={12} /> Reviewed</span>}
-                      {capsule.improved && <span className="meta-improved"><Sparkles size={12} /> Improved</span>}
+                      {capsule.improved && <span className="meta-improved"><Check size={12} /> Improved</span>}
                     </div>
                     <div className="capsule-actions">
                       <button type="button" className="copy-button" onClick={() => handleCopy(capsule)}>
@@ -449,14 +439,14 @@ function Dashboard() {
           </section>
 
           <footer className="dashboard-footer">
-            <span><Sparkles size={14} /> A little more room for good ideas.</span>
+            <span><BookOpen size={14} /> A little more room for good ideas.</span>
             <span>AI Capsule</span>
           </footer>
         </div>
       </main>
 
       {showForm && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setShowForm(false); }}>
+        <div className="modal-backdrop">
           <section className="prompt-modal" role="dialog" aria-modal="true" aria-labelledby="prompt-modal-title">
             <div className="modal-header">
               <div>
@@ -470,7 +460,7 @@ function Dashboard() {
             <form onSubmit={handleSubmit} className="prompt-form">
               <div className="form-row">
                 <label>
-                  Project name <span className="required-mark">*</span>
+                  <span className="field-label">Project name <span className="required-mark">*</span></span>
                   <input name="project_name" value={form.project_name} onChange={updateField} required maxLength={120} placeholder="e.g. Portfolio refresh" />
                 </label>
                 <label>
@@ -479,11 +469,11 @@ function Dashboard() {
                 </label>
               </div>
               <label>
-                Prompt title <span className="required-mark">*</span>
+                <span className="field-label">Prompt title <span className="required-mark">*</span></span>
                 <input name="prompt_title" value={form.prompt_title} onChange={updateField} required maxLength={160} placeholder="Give this prompt a clear name" />
               </label>
               <label>
-                Prompt text <span className="required-mark">*</span>
+                <span className="field-label">Prompt text <span className="required-mark">*</span></span>
                 <textarea name="prompt_text" value={form.prompt_text} onChange={updateField} required rows={5} placeholder="Write or paste the prompt you want to keep…" />
               </label>
               <label>
@@ -527,7 +517,6 @@ function Dashboard() {
               {error && <p className="dashboard-error" role="alert">{error}</p>}
 
               <div className="modal-actions">
-                <button type="button" className="button button-secondary" onClick={() => setShowForm(false)} disabled={saving}>Cancel</button>
                 <button type="submit" className="button button-primary" disabled={saving}>
                   {saving ? <span className="button-spinner" aria-hidden="true" /> : <Save size={16} />}
                   {saving ? "Saving…" : editingId ? "Save changes" : "Save prompt"}

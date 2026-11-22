@@ -1,8 +1,17 @@
 const path = require("path");
 
 const databaseUrl = (process.env.DATABASE_URL || "").trim();
+const isVercel =
+  process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV) || Boolean(process.env.VERCEL_URL);
+const isProduction = isVercel || process.env.NODE_ENV === "production";
 let pool;
 let initializeDatabase;
+
+if (isProduction && !databaseUrl) {
+  throw new Error(
+    "DATABASE_URL is required in production. Add the Neon PostgreSQL pooled connection string to the Vercel API project's environment variables. Leave it blank only for local SQLite development."
+  );
+}
 
 if (databaseUrl) {
   if (!/^postgres(?:ql)?:\/\//i.test(databaseUrl)) {
@@ -14,10 +23,18 @@ if (databaseUrl) {
   const { Pool } = require("pg");
   pool = new Pool({
     connectionString: databaseUrl,
+    max: 5,
+    connectionTimeoutMillis: 10000,
+    idleTimeoutMillis: 10000,
     ssl: {
       rejectUnauthorized: false,
     },
   });
+
+  if (isVercel) {
+    const { attachDatabasePool } = require("@vercel/functions");
+    attachDatabasePool(pool);
+  }
 
   initializeDatabase = async () => {
     const connection = await pool.connect();

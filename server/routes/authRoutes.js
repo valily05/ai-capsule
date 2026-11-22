@@ -8,6 +8,15 @@ const {
 const authenticateToken = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const isVercel =
+  process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV) || Boolean(process.env.VERCEL_URL);
+const isProduction = process.env.NODE_ENV === "production" || isVercel;
+const cookieSameSite = process.env.COOKIE_SAME_SITE || (isVercel ? "none" : "lax");
+const sessionCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: cookieSameSite,
+};
 
 // The dashboard uses this route to restore the signed-in user's session.
 router.get("/me", authenticateToken, (req, res) => {
@@ -49,9 +58,7 @@ router.get("/github", (req, res) => {
   // Store state for callback verification
   const state = params.get("state");
   res.cookie("oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    ...sessionCookieOptions,
     path: "/auth",
     maxAge: 5 * 60 * 1000,
   });
@@ -80,9 +87,7 @@ router.get("/github/callback", async (req, res) => {
     }
 
     res.clearCookie("oauth_state", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      ...sessionCookieOptions,
       path: "/auth",
     });
 
@@ -99,9 +104,7 @@ router.get("/github/callback", async (req, res) => {
     );
 
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      ...sessionCookieOptions,
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -118,9 +121,7 @@ router.get("/github/callback", async (req, res) => {
 // Logout
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    ...sessionCookieOptions,
     path: "/",
   });
 
