@@ -21,6 +21,12 @@ import { apiRequest } from "../services/api";
 import { Brand, BrandMark } from "../components/Brand";
 
 const categoryOptions = ["Coding", "Writing", "Research", "Study", "Other"];
+const promptVersionOptions = ["v1", "v2", "v3"];
+
+function normalizePromptVersion(value) {
+  const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return promptVersionOptions.includes(normalized) ? normalized : "v1";
+}
 
 const emptyForm = {
   project_name: "",
@@ -137,7 +143,7 @@ function Dashboard() {
     setForm({
       project_name: capsule.project_name || "",
       prompt_title: capsule.prompt_title || "",
-      prompt_version: capsule.prompt_version || "",
+      prompt_version: normalizePromptVersion(capsule.prompt_version),
       prompt_text: capsule.prompt_text || "",
       response_summary: capsule.response_summary || "",
       category: capsule.category || "Coding",
@@ -167,7 +173,7 @@ function Dashboard() {
       project_name: form.project_name.trim(),
       prompt_title: form.prompt_title.trim(),
       prompt_text: form.prompt_text.trim(),
-      prompt_version: form.prompt_version.trim(),
+      prompt_version: normalizePromptVersion(form.prompt_version),
       response_summary: form.response_summary.trim(),
       screenshot_url: form.screenshot_url.trim(),
       notes: form.notes.trim(),
@@ -484,10 +490,23 @@ function Dashboard() {
                   <span className="field-label">Project name <span className="required-mark">*</span></span>
                   <input name="project_name" value={form.project_name} onChange={updateField} required maxLength={120} placeholder="e.g. Portfolio refresh" />
                 </label>
-                <label>
-                  Version
-                  <input name="prompt_version" value={form.prompt_version} onChange={updateField} maxLength={40} placeholder="v1" />
-                </label>
+                <fieldset className="version-field">
+                  <legend>Prompt version / iteration</legend>
+                  <div className="version-selector">
+                    {promptVersionOptions.map((version) => (
+                      <label className="version-option" key={version}>
+                        <input
+                          type="radio"
+                          name="prompt_version"
+                          value={version}
+                          checked={form.prompt_version === version}
+                          onChange={updateField}
+                        />
+                        <span>{version.toUpperCase()}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
               </div>
               <label>
                 <span className="field-label">Prompt title <span className="required-mark">*</span></span>

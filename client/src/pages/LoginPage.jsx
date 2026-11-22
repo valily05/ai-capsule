@@ -41,12 +41,14 @@ function LoginPage() {
           )}
 
           <button
-            className="button button-primary github-button"
+            className="button button-primary button-glint github-button"
             onClick={handleGitHubLogin}
             disabled={loading}
           >
             <span className="github-mark" aria-hidden="true">GH</span>
-            {loading ? "Connecting to GitHub…" : "Continue with GitHub"}
+            <span className="github-button-label">
+              {loading ? "Connecting to GitHub…" : "Continue with GitHub"}
+            </span>
             {!loading && <ArrowRight size={17} />}
           </button>
 
