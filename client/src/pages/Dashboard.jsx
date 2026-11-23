@@ -5,6 +5,7 @@ import {
   BookOpen,
   CalendarDays,
   Check,
+  ChevronDown,
   Copy,
   FolderOpen,
   LayoutDashboard,
@@ -565,16 +566,22 @@ function Dashboard() {
               <div className="form-row">
                 <label>
                   Category
-                  <select name="category" value={form.category} onChange={updateField}>
-                    {categories.map((category) => <option key={category} value={category}>{category}</option>)}
-                  </select>
+                  <span className="form-select-control">
+                    <select name="category" value={form.category} onChange={updateField}>
+                      {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                    </select>
+                    <ChevronDown size={15} aria-hidden="true" />
+                  </span>
                 </label>
                 <label>
                   Usefulness
-                  <select name="usefulness" value={form.usefulness} onChange={updateField}>
-                    <option>Good</option>
-                    <option>Needs Improvement</option>
-                  </select>
+                  <span className="form-select-control">
+                    <select name="usefulness" value={form.usefulness} onChange={updateField}>
+                      <option>Good</option>
+                      <option>Needs Improvement</option>
+                    </select>
+                    <ChevronDown size={15} aria-hidden="true" />
+                  </span>
                 </label>
               </div>
               <div className="form-checks">
@@ -599,9 +606,14 @@ function Dashboard() {
               {error && <p className="dashboard-error" role="alert">{error}</p>}
 
               <div className="modal-actions">
-                <button type="submit" className="button button-primary" disabled={saving}>
+                <button type="submit" className="button button-primary button-glint save-prompt-button" disabled={saving}>
                   {saving ? <span className="button-spinner" aria-hidden="true" /> : <Save size={16} />}
-                  {saving ? "Saving…" : editingId ? "Save changes" : "Save prompt"}
+                  <span className="glint-label">
+                    <span>{saving ? "Saving…" : editingId ? "Save changes" : "Save prompt"}</span>
+                    <span className="glint-label-shine" aria-hidden="true">
+                      {saving ? "Saving…" : editingId ? "Save changes" : "Save prompt"}
+                    </span>
+                  </span>
                 </button>
               </div>
             </form>

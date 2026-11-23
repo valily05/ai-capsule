@@ -1322,6 +1322,23 @@
 .prompt-form textarea::placeholder { color: #666b80; }
 .prompt-form textarea { min-height: 68px; resize: vertical; line-height: 1.55; }
 .prompt-form select option { color: #f4f3fa; background: #171927; }
+.form-select-control { position: relative; display: block; width: 100%; }
+.form-select-control select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 46px;
+  cursor: pointer;
+}
+.form-select-control > svg {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  color: #aaa0d0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: color 170ms ease;
+}
+.form-select-control:focus-within > svg { color: #c1b1ff; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
 
 .version-field {
@@ -1896,6 +1913,36 @@
   18% { opacity: 0.78; }
   78% { opacity: 0.62; }
   100% { opacity: 0; background-position: 0 0; }
+}
+
+.button-glint.save-prompt-button::after {
+  top: 0;
+  bottom: 0;
+  left: -55%;
+  width: 46%;
+  opacity: 0;
+  transform: skewX(-15deg);
+  background: linear-gradient(
+    100deg,
+    transparent 4%,
+    rgba(255, 255, 255, 0.09) 31%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(255, 255, 255, 0.14) 68%,
+    transparent 96%
+  );
+}
+
+.button-glint.save-prompt-button:hover:not(:disabled)::after,
+.button-glint.save-prompt-button:focus-visible::after {
+  animation: save-prompt-glare 900ms linear both;
+}
+
+@keyframes save-prompt-glare {
+  0% { left: -55%; opacity: 0; }
+  12% { left: -35%; opacity: 0.82; }
+  50% { left: 27%; opacity: 0.82; }
+  88% { left: 90%; opacity: 0.34; }
+  100% { left: 110%; opacity: 0; }
 }
 
 .benefit-card,
